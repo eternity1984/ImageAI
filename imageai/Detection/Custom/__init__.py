@@ -70,9 +70,10 @@ class DetectionModelTrainer:
         """
         'setModelTypeAsYOLOv3()' is used to set the model type to the YOLOv3 model
         for the training instance object .
-        :return:
+        :return: self
         """
         self.__model_type = "yolov3"
+        return self
 
     def setDataDirectory(self, data_directory):
 
@@ -107,7 +108,7 @@ class DetectionModelTrainer:
                                 >> annotations  >> img_153.xml
 
         :param data_directory:
-        :return:
+        :return: self
         """
 
         self.__train_images_folder = os.path.join(data_directory, "train", "images")
@@ -129,6 +130,7 @@ class DetectionModelTrainer:
         self.__train_weights_name = os.path.join(self.__model_directory, "detection_model-")
         self.__json_directory = os.path.join(data_directory, "json")
         self.__logs_directory = os.path.join(data_directory, "logs")
+        return self
 
     def setGpuUsage(self, train_gpus):
         """
@@ -138,7 +140,7 @@ class DetectionModelTrainer:
         - a list of integers, indicating the id of the GPUs to be used
         - a string, indicating the it og the id of the GPUs to be used, separated by commas
         :param train_gpus: gpus where to run
-        :return:
+        :return: self
         """
         # train_gpus, could be a string separated by comma, or a list of int or the number of GPUs to be used
         if type(train_gpus) == str:
@@ -147,6 +149,7 @@ class DetectionModelTrainer:
             train_gpus = range(train_gpus)
         # let it as a string separated by commas
         self.__train_gpus = ','.join([str(gpu) for gpu in train_gpus])
+        return self
 
     def setTrainConfig(self,  object_names_array, batch_size=4, num_experiments=100, train_from_pretrained_model=""):
 
@@ -163,7 +166,7 @@ class DetectionModelTrainer:
         :param batch_size:
         :param num_experiments:
         :param train_from_pretrained_model:
-        :return:
+        :return: self
         """
 
         self.__model_anchors, self.__inference_anchors = generateAnchors(self.__train_annotations_folder,
@@ -186,6 +189,7 @@ class DetectionModelTrainer:
                       ensure_ascii=True)
 
         print("Detection configuration saved in ", os.path.join(self.__json_directory, "detection_config.json"))
+        return self
 
     def trainModel(self):
 
@@ -600,32 +604,35 @@ class CustomObjectDetection:
     def setModelTypeAsYOLOv3(self):
         """
         'setModelTypeAsYOLOv3' is used to set your custom detection model as YOLOv3
-        :return:
+        :return: self
         """
         self.__model_type = "yolov3"
+        return self
 
     def setModelPath(self, detection_model_path):
         """
         'setModelPath' is used to specify the filepath to your custom detection model
         :param detection_model_path: path to the .h5 model file.
             Usually is one of those under <data_directory>/models/detection_model-ex-ddd--loss-dddd.ddd.h5
-        :return: None
+        :return: self
         """
         self.__model_path = detection_model_path
+        return self
 
     def setJsonPath(self, configuration_json):
         """
         'setJsonPath' is used to set the filepath to the configuration JSON file for your custom detection model
         :param configuration_json: path to the .json file. Usually it is <data_directory>/json/detection_config.json
-        :return: None
+        :return: self
         """
         self.__detection_config_json_path = configuration_json
+        return self
 
     def loadModel(self):
 
         """
         'loadModel' is used to load the model into the CustomObjectDetection class
-        :return: None
+        :return: self
         """
 
         if self.__model_type == "yolov3":
@@ -639,6 +646,8 @@ class CustomObjectDetection:
             self.__model = yolo_main(Input(shape=(None, None, 3)), 3, len(self.__model_labels))
 
             self.__model.load_weights(self.__model_path)
+
+        return self
 
     def detectObjectsFromImage(self, input_image="", output_image_path="", input_type="file", output_type="file",
                                extract_detected_objects=False, minimum_percentage_probability=50, nms_treshold=0.4,
@@ -859,36 +868,37 @@ class CustomVideoObjectDetection:
 
         """
         'setModelTypeAsYOLOv3' is used to set your custom detection model as YOLOv3
-        :return:
+        :return: self
         """
 
         self.__model_type = "yolov3"
-
+        return self
 
     def setModelPath(self, detection_model_path):
         """
         'setModelPath' is used to specify the filepath to your custom detection model
 
         :param detection_model_path:
-        :return:
+        :return: self
         """
         self.__model_path = detection_model_path
-
+        return self
 
     def setJsonPath(self, configuration_json):
         """
         'setJsonPath' is used to set the filepath to the configuration JSON file for your custom detection model
 
         :param configuration_json:
-        :return:
+        :return: self
         """
         self.__detection_config_json_path = configuration_json
+        return self
 
     def loadModel(self):
         """
         'loadModel' is used to load the model into the CustomVideoObjectDetection class
 
-        :return:
+        :return: self
         """
 
         if (self.__model_loaded == False):
@@ -901,6 +911,8 @@ class CustomVideoObjectDetection:
 
                 self.__detector = detector
                 self.__model_loaded = True
+
+        return self
 
 
     def detectObjectsFromVideo(self, input_file_path="", camera_input=None, output_file_path="", frames_per_second=20,
