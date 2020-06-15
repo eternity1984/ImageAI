@@ -582,6 +582,16 @@ class DetectionModelTrainer:
 
         return train_model, infer_model
 
+class OnnxModelWrapper:
+    def __init__(self, onnx_model_path):
+        super().__init__()
+        import onnxruntime
+        self.__sess = onnxruntime.InferenceSession(onnx_model_path)
+
+    def predict(self, x):
+        x = x if isinstance(x, list) else [x]
+        feed = dict([(input.name, x[n]) for n, input in enumerate(self.__sess.get_inputs())])
+        return self.__sess.run(None, feed)
 
 class CustomObjectDetection:
 
@@ -607,6 +617,14 @@ class CustomObjectDetection:
         :return: self
         """
         self.__model_type = "yolov3"
+        return self
+
+    def setModelTypeAsOnnx(self):
+        """
+        'setModelTypeAsOnnx' is used to set your custom detection model as Onnx
+        :return: self
+        """
+        self.__model_type = "onnx"
         return self
 
     def setModelPath(self, detection_model_path):
@@ -635,19 +653,36 @@ class CustomObjectDetection:
         :return: self
         """
 
+        if not __model_type in ["yolov3", "onnx"]:
+            raise RuntimeError()
+
+        detection_model_json = json.load(open(self.__detection_config_json_path))
+
+        self.__model_labels = detection_model_json["labels"]
+        self.__model_anchors = detection_model_json["anchors"]
+
+        self.__detection_utils = CustomDetectionUtils(labels=self.__model_labels)
+
         if self.__model_type == "yolov3":
-            detection_model_json = json.load(open(self.__detection_config_json_path))
-
-            self.__model_labels = detection_model_json["labels"]
-            self.__model_anchors = detection_model_json["anchors"]
-
-            self.__detection_utils = CustomDetectionUtils(labels=self.__model_labels)
-
             self.__model = yolo_main(Input(shape=(None, None, 3)), 3, len(self.__model_labels))
-
             self.__model.load_weights(self.__model_path)
 
+        elif self.__model_type == "onnx":
+            self.__model = OnnxModelWrapper(self.__model_path)
+
         return self
+
+    def toOnnx(self, output_model_path)
+        """
+
+        'toOnnx()' function is used to export to ONNX format:
+                    * output_model_path, file path to the output model
+        return: 
+        """
+        import keras2onnx
+        if self.__model_type == "yolov3":
+            onnx_model = keras2onnx.convert_keras(self.__model, "yolov3")
+            keras2onnx.save_model(onnx_model, output_model_path)
 
     def detectObjectsFromImage(self, input_image="", output_image_path="", input_type="file", output_type="file",
                                extract_detected_objects=False, minimum_percentage_probability=50, nms_treshold=0.4,
